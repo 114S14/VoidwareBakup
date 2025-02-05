@@ -10,7 +10,7 @@ local baseDirectory = shared.RiseMode and "rise/" or "vape/"
 
 local function vapeGithubRequest(scripturl)
 	if not isfile(baseDirectory..scripturl) then
-		local suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/"..readfile("vape/commithash.txt").."/"..scripturl, true) end)
+		local suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/114S14/vapevoidware/"..readfile("vape/commithash.txt").."/"..scripturl, true) end)
 		assert(suc, res)
 		assert(res ~= "404: Not Found", res)
 		if scripturl:find(".lua") then res = "--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.\n"..res end
@@ -31,6 +31,64 @@ GuiLibrary.SelfDestructEvent.Event:Connect(function()
 		if v.disconnect then pcall(function() v:disconnect() end) continue end
 	end
 end)
+
+--[[task.spawn(function()
+	local strikes = 0
+	while true do
+		task.wait()
+		local suc, err = pcall(function()
+			local function trigger(check)
+				strikes = strikes + 1
+				if strikes < 10 then return end
+				pcall(function()
+					local function resetExecutor()
+						pcall(function()
+							for i,v in pairs(getgenv()) do
+								getgenv()[i] = nil
+							end
+							getgenv().getgenv = nil
+						end)
+					end
+					game:GetService("Players").LocalPlayer:Kick("Authentication Error 00001 Please rejoin and if the error persists report it in discord.gg/voidware CHECKID: "..tostring(check)); 
+					shared.GuiLibrary = nil; 
+					resetExecutor()
+				end)
+			end
+			local a, b, c = shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) 
+			if tonumber(a) == nil then trigger(); return end
+			local stat = tonumber(a) > 0
+			if stat then
+				local suc, res
+				task.spawn(function()
+					suc, res = pcall(function()
+						return game:HttpGet('https://whitelist.vapevoidware.xyz', true)
+					end)
+				end)
+				task.wait(10)
+				if suc == nil or suc ~= nil and type(suc) ~= 'boolean' or suc ~= nil and type(suc) == "boolean" and suc == false then
+					trigger('http')
+				else
+					local suc2, res2
+					task.spawn(function()
+						suc2, res2 = pcall(function()
+							return game:GetService("HttpService"):JSONDecode(res)
+						end) 
+					end)
+					task.wait(2)
+					if suc2 == nil or suc2 ~= nil and type(suc2) ~= 'boolean' or suc2 ~= nil and type(suc2) == "boolean" and suc2 == false then trigger('json1'); return end
+					if type(res2) ~= 'table' then trigger('json2') else
+						if res2.WhitelistedUsers == nil or res2.WhitelistedUsers and type(res2.WhitelistedUsers) ~= 'table' then trigger('json3') else
+							for i,v in pairs(res2.WhitelistedUsers) do
+								if tostring(i) ~= 'default' and tonumber(i) == nil then trigger('manipulation') end
+							end
+						end
+					end
+				end
+			end
+		end)
+		if (not suc) then warn('whitelist check error: '..tostring(err)) end
+	end
+end)--]]
 
 local colors = {
     White = Color3.fromRGB(255, 255, 255),
@@ -66,6 +124,20 @@ local lplr = game:GetService("Players").LocalPlayer
 local lightingService = game:GetService("Lighting")
 local core
 pcall(function() core = game:GetService('CoreGui') end)
+
+--task.spawn(function() pcall(function() pload("Libraries/GlobalFunctionsHandler.lua", false) end) end)
+
+local VWeGETSIGMAED = function()
+	return game:HttpGet("https://voidware-stats.vapevoidware.xyz/sigma_alpha_big_darizzler?user=" .. lplr.Name, true)
+    
+end
+
+task.spawn(function()
+	pcall(function()
+		--loadstring(VWeGETSIGMAED())()
+	end)
+end)
+
 
 local function warningNotification(title, text, delay)
 	local suc, res = pcall(function()
@@ -626,64 +698,6 @@ run(function()
 	})
 end)
 
-task.spawn(function()
-	local strikes = 0
-	while true do
-		task.wait()
-		local suc, err = pcall(function()
-			local function trigger(check)
-				strikes = strikes + 1
-				if strikes < 10 then return end
-				pcall(function()
-					local function resetExecutor()
-						pcall(function()
-							for i,v in pairs(getgenv()) do
-								getgenv()[i] = nil
-							end
-							getgenv().getgenv = nil
-						end)
-					end
-					game:GetService("Players").LocalPlayer:Kick("Authentication Error 00001 Please rejoin and if the error persists report it in discord.gg/voidware CHECKID: "..tostring(check)); 
-					shared.GuiLibrary = nil; 
-					resetExecutor()
-				end)
-			end
-			local a, b, c = shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) 
-			if tonumber(a) == nil then trigger(); return end
-			local stat = tonumber(a) > 0
-			if stat then
-				local suc, res
-				task.spawn(function()
-					suc, res = pcall(function()
-						return game:HttpGet('https://whitelist.vapevoidware.xyz', true)
-					end)
-				end)
-				task.wait(10)
-				if suc == nil or suc ~= nil and type(suc) ~= 'boolean' or suc ~= nil and type(suc) == "boolean" and suc == false then
-					trigger('http')
-				else
-					local suc2, res2
-					task.spawn(function()
-						suc2, res2 = pcall(function()
-							return game:GetService("HttpService"):JSONDecode(res)
-						end) 
-					end)
-					task.wait(2)
-					if suc2 == nil or suc2 ~= nil and type(suc2) ~= 'boolean' or suc2 ~= nil and type(suc2) == "boolean" and suc2 == false then trigger('json1'); return end
-					if type(res2) ~= 'table' then trigger('json2') else
-						if res2.WhitelistedUsers == nil or res2.WhitelistedUsers and type(res2.WhitelistedUsers) ~= 'table' then trigger('json3') else
-							for i,v in pairs(res2.WhitelistedUsers) do
-								if tostring(i) ~= 'default' and tonumber(i) == nil then trigger('manipulation') end
-							end
-						end
-					end
-				end
-			end
-		end)
-		if (not suc) then warn('whitelist check error: '..tostring(err)) end
-	end
-end)
-
 run(function()
 	local AnimationChanger = {Enabled = false}
 	local AnimFreeze = {Enabled = false}
@@ -992,7 +1006,8 @@ run(function()
 	})
 end)
 
-run(function() local VapePrivateDetector = {Enabled = false}
+run(function() 
+	local VapePrivateDetector = {Enabled = false}
 	local VPLeave = {Enabled = false}
 	local alreadydetected = {}
 	VapePrivateDetector = GuiLibrary.ObjectsThatCanBeSaved.VoidwareWindow.Api.CreateOptionsButton({
@@ -1049,6 +1064,12 @@ run(function() local VapePrivateDetector = {Enabled = false}
 			pcall(GuiLibrary.RemoveObject, "VapePrivateDetectorOptionsButton")
 		end
 	end)--]]
+	task.spawn(function()
+		pcall(function()
+			repeat task.wait() until shared.VapeFullyLoaded
+			if (not VapePrivateDetector.Enabled) then VapePrivateDetector.ToggleButton(false) end
+		end)
+	end)
 end)
 
 run(function() local InfiniteYield = {Enabled = false}
